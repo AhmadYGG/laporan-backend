@@ -19,7 +19,6 @@ class AuthService
 
     public function register(array $payload)
     {
-        // password hashing handled by model mutator; but safe to hash here too
         $payload['password'] = bcrypt($payload['password']);
         $user = $this->repo->create($payload);
 
@@ -28,7 +27,6 @@ class AuthService
 
     public function login(array $credentials)
     {
-        // attempt login
         if (!$token = auth('api')->attempt($credentials)) {
             throw new Exception('Invalid credentials', 401);
         }
@@ -40,13 +38,13 @@ class AuthService
 
     public function logout()
     {
-        auth('api')->logout(true); // invalidate token
+        auth('api')->logout(true);
         return true;
     }
 
     public function refresh()
     {
-        $refreshedToken = auth('api')->refresh(true, false); // invalidate old token, return new
+        $refreshedToken = auth('api')->refresh(true, false);
         return [
             'token' => $refreshedToken,
             'token_type' => 'bearer',

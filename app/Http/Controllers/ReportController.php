@@ -68,7 +68,7 @@ class ReportController extends Controller
     {
         try {
             $data = $this->service->showReportService(
-                $request->user(),   // penting sesuai diagram
+                $request->user(),
                 $id
             );
 
