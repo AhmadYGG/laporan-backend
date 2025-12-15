@@ -4,57 +4,86 @@ namespace App\Services;
 
 use App\Repositories\Auth\AuthRepository;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Exception;
+use Carbon\Carbon;
 
 class AuthService
 {
-    protected $repo;
+    protected $authRepository;
 
-    public function __construct(AuthRepository $repo)
+    public function __construct(AuthRepository $authRepository)
     {
-        $this->repo = $repo;
+        $this->authRepository = $authRepository;
     }
 
-    public function register(array $payload)
+    public function generateAccessToken($user)
     {
-        $payload['password'] = bcrypt($payload['password']);
-        $user = $this->repo->create($payload);
+        $accessToken = JWTAuth::customClaims([
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'role' => $user->role,
+        ])->fromUser($user);
 
-        return $user;
+        return $accessToken;
     }
 
-    public function login(array $credentials)
+
+    public function generateRefreshToken($user)
     {
-        if (!$token = auth('api')->attempt($credentials)) {
-            throw new Exception('Invalid credentials', 401);
+        $now = Carbon::now();
+        $refreshTTL = config('jwt.refresh_ttl');
+
+        $refreshToken = JWTAuth::customClaims([
+            'user_id' => $user->id,
+            'username' => $user->username,
+            'role' => $user->role,
+            'exp' => now()->addMinutes($refreshTTL)->timestamp,
+        ])->fromUser($user);
+
+        $this->authRepository->CreateSaveToken([
+            'user_id' => $user->id,
+            'role' => $user->role,
+            'user_agent' => request()->userAgent(),
+            'ip_address' => request()->ip(),
+            'refresh_token' => $refreshToken,
+            'expires_at' => $now->copy()->addMinutes($refreshTTL),
+        ]);
+
+        return $refreshToken;
+    }
+
+    public function LoginService($data, &$user = null): mixed
+    {
+        $user = $this->authRepository->SelectUserLogin($data['email']);
+        if ($user === null) {
+            return false;
         }
 
-        $user = auth('api')->user();
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            return false;
+        }
 
-        return $token;
+        $this->generateRefreshToken($user);
+
+        return $this->generateAccessToken($user);
     }
 
-    public function logout()
+    public function RefreshService($id, $agent, $role): mixed
     {
-        auth('api')->logout(true);
-        return true;
+        $token = $this->authRepository->SelectRefreshToken($id, $agent, $role);
+        if (!$token) {
+            return false;
+        }
+
+        if ($role === 'superadmin' || $role === 'admin') {
+            $user = $this->authRepository->SelectUserById($token->user_id);
+        }
+
+        return $this->generateAccessToken($user);
     }
 
-    public function refresh()
+    public function LogoutService($id, $agent)
     {
-        $refreshedToken = auth('api')->refresh(true, false);
-        return [
-            'token' => $refreshedToken,
-            'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => auth('api')->user()
-        ];
-    }
-
-    public function me()
-    {
-        return auth('api')->user();
+        $this->authRepository->DeleteToken($id, $agent);
     }
 }

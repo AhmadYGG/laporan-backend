@@ -49,7 +49,7 @@ class ReportController extends Controller
         try {
             $data = $this->service->createReportService(
                 $request->user(),
-                $request->validated() // penting!
+                $request->all()
             );
 
             return response()->json([
@@ -86,20 +86,11 @@ class ReportController extends Controller
 
     public function updateReportController(UpdateReportRequest $request, $id)
     {
-        \Log::info('DEBUG REQUEST UPDATE REPORT', [
-            'all'   => $request->all(),
-            'input' => $request->input(),
-            'files' => $request->allFiles(),
-            'hasFile_photo' => $request->hasFile('photo'),
-            'content_type' => $request->header('Content-Type'),
-            'method' => $request->method(),
-        ]);
-
         try {
             $data = $this->service->updateReportService(
-                $request->user(),      // user yang login → sesuai diagram
-                $id,                   // id report
-                $request->validated()  // data yang sudah divalidasi
+                $request->user(),
+                $id,
+                $request->validated()
             );
 
             return response()->json([

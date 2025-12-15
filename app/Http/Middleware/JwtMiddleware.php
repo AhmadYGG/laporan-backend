@@ -3,20 +3,21 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Exception;
+use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class JwtMiddleware
 {
-    public function handle($request, Closure $next)
+    public function handle($request, Closure $next): Response
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
-        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (TokenExpiredException) {
             return response()->json(['status' => 'error', 'message' => 'Token expired'], 401);
-        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (TokenInvalidException) {
             return response()->json(['status' => 'error', 'message' => 'Token invalid'], 401);
-        } catch (Exception $e) {
+        } catch (JWTException) {
             return response()->json(['status' => 'error', 'message' => 'Token not provided'], 401);
         }
 

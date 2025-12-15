@@ -13,9 +13,6 @@ class ReportService
         $this->repo = $repo;
     }
 
-    /**
-     * Create Report
-     */
     public function createReportService($user, array $data)
     {
         $data['user_id'] = $user->id;
@@ -27,9 +24,6 @@ class ReportService
         return $this->repo->createReport($data);
     }
 
-    /**
-     * Update Report (User only)
-     */
     public function updateReportService($user, $id, array $data)
     {
         $report = $this->repo->findByIdAndUser($id, $user->id);
@@ -45,12 +39,8 @@ class ReportService
         return $this->repo->updateReport($report, $data);
     }
 
-    /**
-     * Show Report (User sees own, Admin sees all)
-     */
     public function showReportService($user, $id)
     {
-        // Admin (role = admin) dapat lihat semua report
         if ($user->role === 'admin') {
             $report = $this->repo->findById($id);
 
@@ -61,7 +51,6 @@ class ReportService
             return $report;
         }
 
-        // User biasa hanya dapat lihat report miliknya
         $report = $this->repo->findByIdAndUser($id, $user->id);
 
         if (!$report) {
@@ -71,9 +60,6 @@ class ReportService
         return $report;
     }
 
-    /**
-     * List Report (User = own data, Admin = all)
-     */
     public function indexReportService(array $params)
     {
         $user = $params['user'];

@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AuthService;
-use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -17,60 +16,70 @@ class AuthController extends Controller
         $this->service = $service;
     }
 
-    public function register(RegisterRequest $request)
-    {
-        $result = $this->service->register($request->validated());
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ], 201);
-    }
-
     public function login(LoginRequest $request)
     {
-        try {
-            $result = $this->service->login($request->validated());
+        $user = null;
+        $token = $this->service->LoginService($request->validated(), $user);
 
+        if (!$token) {
             return response()->json([
-                'status' => 'success',
-                'token' => $result
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], $e->getCode() ?: 400);
+                'message' => 'Login gagal. Username atau kata sandi tidak sesuai'
+            ], 500);
         }
+
+        return response()->json([
+            'message' => 'Selamat datang, Anda berhasil login.',
+            'role' => $user ? $user->role : null,
+            'token' => $token
+        ], 200);
     }
 
     public function logout()
     {
-        $this->service->logout();
+        $jwt = request()->bearerToken();
+        if (!$jwt) {
+            return response()->json([
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.'
+            ], 401);
+        }
+
+        $payload = JWTAuth::setToken($jwt)->getPayload();
+
+        $id = $payload->get('user_id');
+        $agent = request()->userAgent();
+
+        $this->service->LogoutService($id, $agent);
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Logged out successfully'
+            'message' => 'Anda telah berhasil logout.'
         ], 200);
     }
 
     public function refresh()
     {
-        $result = $this->service->refresh();
+        $jwt = request()->bearerToken();
+        if (!$jwt) {
+            return response()->json([
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses halaman ini.'
+            ], 401);
+        }
+
+        $payload = JWTAuth::setToken($jwt)->getPayload();
+
+        $id = $payload->get('user_id');
+        $agent = request()->userAgent();
+        $role = $payload->get('role');
+
+        $token = $this->service->RefreshService($id, $agent, $role);
+
+        if (!$token) {
+            return response()->json([
+                'message' => 'Refresh Failed'
+            ], 401);
+        }
 
         return response()->json([
-            'status' => 'success',
-            'data' => $result
-        ], 200);
-    }
-
-    public function me()
-    {
-        $user = $this->service->me();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $user
+            'token' => $token
         ], 200);
     }
 }

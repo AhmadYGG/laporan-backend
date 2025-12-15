@@ -21,6 +21,34 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('sessions', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->foreignId('user_id')->nullable()->index();
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->longText('payload');
+            $table->integer('last_activity')->index();
+        });
+
+        Schema::create('user_tokens', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->string('role', 10);
+            $table->string('user_agent', 255);
+            $table->string('ip_address', 45);
+            $table->text('refresh_token');
+            $table->timestamp('expires_at');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'user_agent', 'ip_address', 'role']);
+        });
     }
 
     /**
@@ -31,5 +59,6 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('user_tokens');
     }
 };
