@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -32,6 +33,28 @@ class AuthController extends Controller
             'role' => $user ? $user->role : null,
             'token' => $token
         ], 200);
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        try {
+            $token = $this->service->RegisterService($request->validated());
+
+            if (!$token) {
+                return response()->json([
+                    'message' => 'Registrasi gagal. Silakan coba lagi.'
+                ], 500);
+            }
+
+            return response()->json([
+                'message' => 'Registrasi berhasil. Selamat datang!',
+                'token' => $token
+            ], 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Registrasi gagal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function logout()

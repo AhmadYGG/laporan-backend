@@ -51,4 +51,9 @@ class AuthRepository
             ->where('user_agent', $agent)
             ->delete();
     }
+
+    public function createUser(array $data)
+    {
+        return User::create($data);
+    }
 }

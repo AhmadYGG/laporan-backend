@@ -86,4 +86,18 @@ class AuthService
     {
         $this->authRepository->DeleteToken($id, $agent);
     }
+
+    public function RegisterService(array $data): mixed
+    {
+        // Set default role to 'user'
+        $data['role'] = 'user';
+
+        // Create new user
+        $user = $this->authRepository->createUser($data);
+
+        // Generate tokens
+        $this->generateRefreshToken($user);
+
+        return $this->generateAccessToken($user);
+    }
 }

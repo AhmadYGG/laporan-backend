@@ -11,7 +11,7 @@ class User extends Authenticatable implements JWTSubject
     use Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role'
+        'nik', 'email_phone', 'name', 'password', 'role'
     ];
 
     protected $hidden = [
@@ -29,7 +29,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'user_id' => $this->id,
             'username' => $this->name,
-            'email' => $this->email,
+            'email_phone' => $this->email_phone,
         ];
     }
 

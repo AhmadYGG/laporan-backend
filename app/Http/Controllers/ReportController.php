@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Report\StoreReportRequest;
 use App\Http\Requests\Report\UpdateReportRequest;
+use App\Http\Requests\Report\UpdateReportStatusRequest;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 
@@ -98,6 +99,49 @@ class ReportController extends Controller
                 'data'   => $data,
             ], 200);
 
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function updateStatusController(UpdateReportStatusRequest $request, $id)
+    {
+        try {
+            $data = $this->service->updateReportStatusService(
+                $request->user(),
+                $id,
+                $request->input('status'),
+                $request->input('notes')
+            );
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Report status updated successfully',
+                'data'    => $data,
+            ], 200);
+
+        } catch (\Throwable $e) {
+            $statusCode = $e->getCode() ?: 500;
+            
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], $statusCode);
+        }
+    }
+
+    public function deleteReportController($id)
+    {
+        try {
+            $deleted = $this->service->deleteReportService($id);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Report deleted successfully',
+            ], 200);
         } catch (\Throwable $e) {
             return response()->json([
                 'status'  => 'error',
