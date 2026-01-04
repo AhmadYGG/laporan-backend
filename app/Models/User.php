@@ -42,4 +42,20 @@ class User extends Authenticatable implements JWTSubject
             $this->attributes['password'] = $value;
         }
     }
+
+    // Relationships
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function reportLogs()
+    {
+        return $this->hasMany(ReportLog::class, 'changed_by');
+    }
 }

@@ -4,6 +4,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RecapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,9 +38,7 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     
     // Dashboard
-    Route::get('/', function () {
-        return view('dashboard.index');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Logout
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
@@ -83,5 +83,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
         Route::put('/{id}/read', [NotificationController::class, 'markAsRead'])->name('mark-read');
         Route::put('/read-all', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+    });
+
+    // ==================
+    // Recap (Admin Only)
+    // ==================
+    Route::middleware('admin')->prefix('recap')->name('recap.')->group(function () {
+        Route::get('/', [RecapController::class, 'index'])->name('index');
+        Route::get('/export', [RecapController::class, 'export'])->name('export');
     });
 });
