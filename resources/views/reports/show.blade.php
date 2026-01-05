@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Laporan - Sistem Laporan')
+@section('title', 'Detail Laporan - Silapso')
 
 @section('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -15,10 +15,7 @@
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center text-xl shadow-primary">
-                    <i class="fas fa-clipboard-list text-white"></i>
-                </div>
-                <span class="text-lg font-bold text-gray-900">Laporan Desa</span>
+                <h1 class="text-lg font-bold text-gray-900" style="font-family: 'Playfair Display', serif; letter-spacing: 1px;"><span style="color: #6b4eff;">SIL</span>APSO</h1>
             </div>
             <div class="flex items-center gap-4">
                 <a href="{{ route('reports.index') }}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">

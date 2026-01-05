@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detail Laporan - Sistem Laporan')
+@section('title', 'Detail Laporan - Silapso')
 
 @section('styles')
 <style>

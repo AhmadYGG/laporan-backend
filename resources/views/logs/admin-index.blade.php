@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Log Aktivitas - Sistem Laporan')
+@section('title', 'Log Aktivitas - Silapso')
 
 @section('main-content')
 <div class="mb-8">
@@ -9,10 +9,10 @@
 
 <!-- Search -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-    <form action="{{ route('logs.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
+    <form class="flex flex-col md:flex-row gap-4" onsubmit="handleLogsSearch(event)">
         <div class="flex-1">
             <div class="relative">
-                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan judul laporan, admin, atau status..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <input type="text" id="logsSearchInput" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan judul laporan, admin, atau status..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>
@@ -112,4 +112,18 @@
         </div>
     @endif
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function handleLogsSearch(e) {
+    e.preventDefault();
+    const searchValue = document.getElementById('logsSearchInput').value;
+    let url = '{{ route("logs.index") }}';
+    if (searchValue) {
+        url += '?search=' + encodeURIComponent(searchValue);
+    }
+    AdminNav.navigateTo(url);
+}
+</script>
 @endsection

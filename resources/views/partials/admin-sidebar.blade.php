@@ -1,7 +1,7 @@
 <aside class="w-64 bg-gradient-dark text-white p-6 flex flex-col fixed h-screen left-0 top-0 z-50">
     <!-- Logo -->
     <div class="flex items-center justify-center mb-10 pb-6 border-b border-white/10">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-full max-w-[180px] h-auto object-contain">
+        <h1 class="text-3xl font-bold text-white" style="font-family: 'Playfair Display', serif; letter-spacing: 1px;"><span style="color: #6b4eff;">SIL</span>APSO</h1>
     </div>
 
     <!-- Menu -->
@@ -46,7 +46,7 @@
                 <div class="text-xs text-white/60 capitalize">{{ auth()->user()->role }}</div>
             </div>
         </div>
-        <form action="{{ route('logout') }}" method="POST">
+        <form action="{{ route('logout') }}" method="POST" class="w-full">
             @csrf
             <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-all text-sm font-medium">
                 <i class="fas fa-sign-out-alt"></i> Logout

@@ -110,115 +110,7 @@
     <script>
         window.csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        // SPA-like Navigation
-        const AdminNav = {
-            init() {
-                this.bindNavLinks();
-                window.addEventListener('popstate', (e) => this.handlePopState(e));
-            },
-
-            bindNavLinks() {
-                document.querySelectorAll('[data-nav-link]').forEach(link => {
-                    link.removeEventListener('click', this.handleNavClick);
-                    link.addEventListener('click', (e) => this.handleNavClick(e));
-                });
-            },
-
-            handleNavClick(e) {
-                e.preventDefault();
-                const url = e.currentTarget.href;
-                AdminNav.navigateTo(url);
-            },
-
-            async navigateTo(url, pushState = true) {
-                const mainContent = document.getElementById('main-content');
-                mainContent.classList.add('loading');
-
-                try {
-                    const response = await fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-PJAX': 'true'
-                        }
-                    });
-
-                    if (!response.ok) throw new Error('Network error');
-
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    
-                    // Extract main content
-                    const newContent = doc.getElementById('main-content');
-                    if (newContent) {
-                        mainContent.innerHTML = newContent.innerHTML;
-                    }
-
-                    // Update active sidebar link
-                    this.updateActiveLink(url);
-
-                    // Update page title
-                    const newTitle = doc.querySelector('title');
-                    if (newTitle) {
-                        document.title = newTitle.textContent;
-                    }
-
-                    // Push to history
-                    if (pushState) {
-                        history.pushState({ url }, '', url);
-                    }
-
-                    // Re-bind nav links in new content
-                    this.bindNavLinks();
-                    
-                    // Execute inline scripts
-                    this.executeScripts(mainContent);
-
-                } catch (error) {
-                    console.error('Navigation error:', error);
-                    window.location.href = url;
-                } finally {
-                    mainContent.classList.remove('loading');
-                }
-            },
-
-            updateActiveLink(url) {
-                const path = new URL(url).pathname;
-                document.querySelectorAll('[data-nav-link]').forEach(link => {
-                    const linkPath = new URL(link.href).pathname;
-                    const isActive = path === linkPath || (linkPath !== '/' && path.startsWith(linkPath));
-                    
-                    if (isActive) {
-                        link.classList.remove('text-white/70', 'hover:bg-white/10', 'hover:text-white');
-                        link.classList.add('bg-gradient-primary', 'text-white', 'font-medium');
-                    } else {
-                        link.classList.add('text-white/70', 'hover:bg-white/10', 'hover:text-white');
-                        link.classList.remove('bg-gradient-primary', 'text-white', 'font-medium');
-                    }
-                });
-            },
-
-            handlePopState(e) {
-                if (e.state && e.state.url) {
-                    this.navigateTo(e.state.url, false);
-                }
-            },
-
-            executeScripts(container) {
-                container.querySelectorAll('script').forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => {
-                        newScript.setAttribute(attr.name, attr.value);
-                    });
-                    newScript.textContent = oldScript.textContent;
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => AdminNav.init());
-
-        // Map Modal Functions
+        // Global functions for map and photo modals
         let modalMap, modalMarker;
 
         function openGoogleMaps(lat, lng) {
@@ -261,11 +153,6 @@
             document.getElementById('mapModal').classList.remove('flex');
         }
 
-        document.getElementById('mapModal')?.addEventListener('click', function(e) {
-            if (e.target === this) closeMapModal();
-        });
-
-        // Photo Modal Functions
         function openPhotoModal(src, title) {
             document.getElementById('modalPhoto').src = src;
             document.getElementById('modalPhoto').alt = title;
@@ -286,9 +173,148 @@
             img.classList.toggle('cursor-zoom-in');
         }
 
-        document.getElementById('photoModal')?.addEventListener('click', function(e) {
-            if (e.target === this) closePhotoModal();
-        });
+        // SPA-like Navigation
+        const AdminNav = {
+            init() {
+                this.bindNavLinks();
+                this.bindModalCloseEvents();
+                window.addEventListener('popstate', (e) => this.handlePopState(e));
+            },
+
+            bindNavLinks() {
+                document.querySelectorAll('[data-nav-link]').forEach(link => {
+                    link.removeEventListener('click', this.handleNavClick.bind(this));
+                    link.addEventListener('click', this.handleNavClick.bind(this));
+                });
+            },
+
+            bindModalCloseEvents() {
+                const mapModal = document.getElementById('mapModal');
+                const photoModal = document.getElementById('photoModal');
+                
+                if (mapModal) {
+                    mapModal.removeEventListener('click', this.handleMapModalClick);
+                    mapModal.addEventListener('click', this.handleMapModalClick);
+                }
+                
+                if (photoModal) {
+                    photoModal.removeEventListener('click', this.handlePhotoModalClick);
+                    photoModal.addEventListener('click', this.handlePhotoModalClick);
+                }
+            },
+
+            handleMapModalClick(e) {
+                if (e.target === this) closeMapModal();
+            },
+
+            handlePhotoModalClick(e) {
+                if (e.target === this) closePhotoModal();
+            },
+
+            handleNavClick(e) {
+                e.preventDefault();
+                const url = e.currentTarget.href;
+                AdminNav.navigateTo(url);
+            },
+
+            async navigateTo(url, pushState = true) {
+                const mainContent = document.getElementById('main-content');
+                mainContent.classList.add('loading');
+
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-PJAX': 'true'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Network error');
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Extract main content - ensure we get the right element
+                    const newContent = doc.getElementById('main-content');
+                    if (!newContent) {
+                        console.warn('main-content not found in response, falling back to full page reload');
+                        window.location.href = url;
+                        return;
+                    }
+
+                    // Clear old content and set new content
+                    mainContent.innerHTML = '';
+                    mainContent.innerHTML = newContent.innerHTML;
+
+                    // Update page title
+                    const newTitle = doc.querySelector('title');
+                    if (newTitle) {
+                        document.title = newTitle.textContent;
+                    }
+
+                    // Push to history
+                    if (pushState) {
+                        history.pushState({ url }, '', url);
+                    }
+
+                    // Update active sidebar link AFTER content is loaded
+                    this.updateActiveLink(url);
+
+                    // Re-bind nav links in new content
+                    this.bindNavLinks();
+                    
+                    // Execute inline scripts from page sections
+                    this.executeScripts(mainContent);
+
+                } catch (error) {
+                    console.error('Navigation error:', error);
+                    window.location.href = url;
+                } finally {
+                    mainContent.classList.remove('loading');
+                }
+            },
+
+            updateActiveLink(url) {
+                const path = new URL(url).pathname;
+                
+                // Remove active state from all links first
+                document.querySelectorAll('[data-nav-link]').forEach(link => {
+                    link.classList.remove('bg-gradient-primary', 'text-white', 'font-medium');
+                    link.classList.add('text-white/70', 'hover:bg-white/10', 'hover:text-white');
+                });
+
+                // Add active state to matching link
+                document.querySelectorAll('[data-nav-link]').forEach(link => {
+                    const linkPath = new URL(link.href).pathname;
+                    const isActive = path === linkPath || (linkPath !== '/' && path.startsWith(linkPath));
+                    
+                    if (isActive) {
+                        link.classList.remove('text-white/70', 'hover:bg-white/10', 'hover:text-white');
+                        link.classList.add('bg-gradient-primary', 'text-white', 'font-medium');
+                    }
+                });
+            },
+
+            handlePopState(e) {
+                if (e.state && e.state.url) {
+                    this.navigateTo(e.state.url, false);
+                }
+            },
+
+            executeScripts(container) {
+                container.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => AdminNav.init());
     </script>
     
     @yield('scripts')

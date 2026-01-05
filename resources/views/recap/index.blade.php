@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Rekap Laporan - Sistem Laporan')
+@section('title', 'Rekap Laporan - Silapso')
 
 @section('main-content')
 <div class="mb-8">
@@ -121,7 +121,7 @@ function filterReports() {
     if (startDate) params.append('start_date', startDate);
     if (endDate) params.append('end_date', endDate);
     if (params.toString()) url += '?' + params.toString();
-    window.location.href = url;
+    AdminNav.navigateTo(url);
 }
 
 function exportExcel() {

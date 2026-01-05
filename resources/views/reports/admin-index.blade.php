@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Daftar Laporan - Sistem Laporan')
+@section('title', 'Daftar Laporan - Silapso')
 
 @section('main-content')
 <div class="mb-8">

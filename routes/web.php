@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecapController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,12 +15,13 @@ use Illuminate\Support\Facades\Route;
 | Web Routes (Fullstack)
 |--------------------------------------------------------------------------
 */
+Route::get('/', function () {
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('landing');
+})->name('home');
 
-// ========================================
-// Public Routes (Guest Only)
-// ========================================
+Route::get('/landing', [LandingController::class, 'index'])->name('landing');
+
 Route::middleware(['guest'])->group(function () {
-    // Auth Pages
     Route::get('/login', function () {
         return view('auth.login');
     })->name('login');
@@ -33,23 +35,10 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
 });
 
-// ========================================
-// Protected Routes (Authenticated Users)
-// ========================================
 Route::middleware(['auth'])->group(function () {
-
-    // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Logout
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logoutWeb'])->name('logout');
-
-    // Profile
     Route::get('/me', [AuthController::class, 'me'])->name('profile');
-
-    // ==================
-    // Reports
-    // ==================
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'indexReportController'])->name('index');
         Route::get('/create', function () {
@@ -63,21 +52,15 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', [ReportController::class, 'updateReportController'])->name('update');
         Route::delete('/{id}', [ReportController::class, 'deleteReportController'])->name('destroy');
 
-        // Admin only: Update report status
         Route::put('/{id}/status', [ReportController::class, 'updateStatusController'])->name('update-status');
     });
 
-    // ==================
-    // Users (Admin)
-    // ==================
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/{id}', [UserController::class, 'show'])->name('show');
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    // ==================
-    // Notifications
     // ==================
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
@@ -86,17 +69,11 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/read-all', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
     });
 
-    // ==================
-    // Recap (Admin Only)
-    // ==================
     Route::middleware('admin')->prefix('recap')->name('recap.')->group(function () {
         Route::get('/', [RecapController::class, 'index'])->name('index');
         Route::get('/export', [RecapController::class, 'export'])->name('export');
     });
 
-    // ==================
-    // Logs (Admin Only)
-    // ==================
     Route::middleware('admin')->prefix('logs')->name('logs.')->group(function () {
         Route::get('/', [LogController::class, 'index'])->name('index');
     });

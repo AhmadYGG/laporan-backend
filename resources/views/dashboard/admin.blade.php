@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard Admin - Sistem Laporan')
+@section('title', 'Dashboard Admin - Silapso')
 
 @section('main-content')
 <!-- Page Header -->

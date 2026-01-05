@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Login - Sistem Laporan')
+@section('title', 'Login - Silapso')
 
 @section('content')
 <!-- Header -->
 <header class="bg-gradient-to-r from-slate-900 to-slate-800 py-4 px-6 shadow-lg">
-    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10 w-auto object-contain">
+    <h1 class="text-2xl font-bold text-white" style="font-family: 'Playfair Display', serif; letter-spacing: 1px;"><span style="color: #6b4eff;">SIL</span>APSO</h1>
 </header>
 
 <!-- Main Content -->
