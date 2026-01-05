@@ -63,7 +63,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm">
-                                <a href="{{ route('reports.show', $report->id) }}" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all" title="Detail">
+                                <a href="{{ route('reports.show', $report->id) }}" class="inline-flex items-center justify-center px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </td>
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(() => {
                     el.textContent = location;
-                });
+                }); 
         } else {
             el.textContent = location || '-';
         }
