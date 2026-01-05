@@ -26,7 +26,7 @@ class ReportService
         $data['user_id'] = $user->id;
 
         if (isset($data['photo'])) {
-            $data['photo_path'] = $data['photo']->store('reports');
+            $data['photo_path'] = $data['photo']->store('reports', 'public');
         }
 
         return $this->repo->createReport($data);
@@ -41,7 +41,7 @@ class ReportService
         }
 
         if (isset($data['photo'])) {
-            $data['photo_path'] = $data['photo']->store('reports');
+            $data['photo_path'] = $data['photo']->store('reports', 'public');
         }
 
         return $this->repo->updateReport($report, $data);

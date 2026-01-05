@@ -6,6 +6,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RecapController;
+use App\Http\Controllers\LogController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -91,5 +92,12 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('admin')->prefix('recap')->name('recap.')->group(function () {
         Route::get('/', [RecapController::class, 'index'])->name('index');
         Route::get('/export', [RecapController::class, 'export'])->name('export');
+    });
+
+    // ==================
+    // Logs (Admin Only)
+    // ==================
+    Route::middleware('admin')->prefix('logs')->name('logs.')->group(function () {
+        Route::get('/', [LogController::class, 'index'])->name('index');
     });
 });

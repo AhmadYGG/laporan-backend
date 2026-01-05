@@ -27,16 +27,39 @@ class UserController extends Controller
 
             $result = $this->service->listUsers($params);
 
-            return response()->json([
-                'status'     => 'success',
-                'data'       => $result['data'],
-                'pagination' => $result['pagination'],
-            ], 200);
+            // Return view for web requests, JSON for API
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'     => 'success',
+                    'data'       => $result['data'],
+                    'pagination' => $result['pagination'],
+                ], 200);
+            }
+
+            // For web, get paginated users directly with search
+            $search = $request->query('search');
+            $users = \App\Models\User::where('role', 'user')
+                ->when($search, function ($q) use ($search) {
+                    return $q->where(function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%")
+                            ->orWhere('nik', 'like', "%{$search}%")
+                            ->orWhere('email_phone', 'like', "%{$search}%");
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(10)
+                ->withQueryString();
+
+            return view('users.admin-index', ['users' => $users, 'search' => $search]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -59,22 +82,29 @@ class UserController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $this->service->deleteUser($id);
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'User berhasil dihapus',
-            ], 200);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'User berhasil dihapus',
+                ], 200);
+            }
+
+            return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
         } catch (\Throwable $e) {
-            $statusCode = $e->getCode() === 404 ? 404 : 500;
-            
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], $statusCode);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                $statusCode = $e->getCode() === 404 ? 404 : 500;
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $e->getMessage(),
+                ], $statusCode);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
     }
 }

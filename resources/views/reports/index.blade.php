@@ -102,18 +102,18 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm">
                                         <div class="flex items-center gap-2">
-                                            <a href="{{ route('reports.show', $report->id) }}" class="text-primary-600 hover:text-primary-700 font-medium">
-                                                <i class="fas fa-eye"></i> Lihat
+                                            <a href="{{ route('reports.show', $report->id) }}" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all" title="Lihat">
+                                                <i class="fas fa-eye"></i>
                                             </a>
                                             @if($report->status === 'pending')
-                                                <a href="{{ route('reports.edit', $report->id) }}" class="text-blue-600 hover:text-blue-700 font-medium">
-                                                    <i class="fas fa-edit"></i> Edit
+                                                <a href="{{ route('reports.edit', $report->id) }}" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all" title="Edit">
+                                                    <i class="fas fa-edit"></i>
                                                 </a>
                                                 <form action="{{ route('reports.destroy', $report->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus laporan ini?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-700 font-medium">
-                                                        <i class="fas fa-trash"></i> Hapus
+                                                    <button type="submit" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all" title="Hapus">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
                                             @endif
