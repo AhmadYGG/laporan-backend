@@ -10,10 +10,32 @@ class Report extends Model
         'user_id',
         'title',
         'description',
-        'location',
+        'location', // format: "lat,lng"
         'photo_path',
         'status', // pending, in_progress, done, rejected
     ];
+
+    /**
+     * Get latitude from location
+     */
+    public function getLatitudeAttribute()
+    {
+        if (!$this->location || !str_contains($this->location, ',')) {
+            return null;
+        }
+        return (float) explode(',', $this->location)[0];
+    }
+
+    /**
+     * Get longitude from location
+     */
+    public function getLongitudeAttribute()
+    {
+        if (!$this->location || !str_contains($this->location, ',')) {
+            return null;
+        }
+        return (float) explode(',', $this->location)[1];
+    }
 
     public function user()
     {

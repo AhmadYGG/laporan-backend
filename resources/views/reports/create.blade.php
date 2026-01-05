@@ -2,6 +2,13 @@
 
 @section('title', 'Buat Laporan - Sistem Laporan')
 
+@section('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 350px; border-radius: 0.5rem; z-index: 1; }
+</style>
+@endsection
+
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Header -->
@@ -56,23 +63,33 @@
         <form action="{{ route('reports.store') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
             @csrf
 
-            <!-- Lokasi -->
+            <!-- Lokasi Maps -->
             <div class="mb-8">
-                <label for="location" class="block text-sm font-semibold text-gray-900 mb-3">
-                    <i class="fas fa-map-marker-alt text-primary-600 mr-2"></i>Lokasi
+                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                    <i class="fas fa-map-marker-alt text-primary-600 mr-2"></i>Pilih Lokasi di Peta
                 </label>
-                <input 
-                    type="text" 
-                    id="location" 
-                    name="location" 
-                    placeholder="Masukkan lokasi fasilitas yang rusak"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all @error('location') border-red-500 @enderror"
-                    value="{{ old('location') }}"
-                    required
-                >
+                <div id="map" class="border border-gray-300 @error('location') border-red-500 @enderror"></div>
+                <p class="text-gray-500 text-sm mt-2">Klik pada peta untuk menentukan lokasi, atau gunakan tombol "Lokasi Saya"</p>
+                
+                <button type="button" onclick="getMyLocation()" class="mt-3 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all">
+                    <i class="fas fa-crosshairs mr-2"></i>Gunakan Lokasi Saya
+                </button>
+
+                <input type="hidden" id="location" name="location" value="{{ old('location') }}">
+                
                 @error('location')
                     <p class="text-red-600 text-sm mt-2">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <!-- Alamat Lokasi (display only) -->
+            <div class="mb-8">
+                <label class="block text-sm font-semibold text-gray-900 mb-3">
+                    <i class="fas fa-map-pin text-primary-600 mr-2"></i>Alamat Lokasi
+                </label>
+                <div id="addressDisplay" class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 min-h-[48px]">
+                    Pilih lokasi di peta untuk melihat alamat
+                </div>
             </div>
 
             <!-- Ringkasan Singkat (Judul) -->
@@ -103,7 +120,7 @@
                     id="description" 
                     name="description" 
                     rows="6"
-                    placeholder="Jelaskan secara detail kondisi fasilitas yang rusak, dampak yang ditimbulkan, dan informasi penting lainnya..."
+                    placeholder="Jelaskan secara detail kondisi fasilitas yang rusak..."
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none @error('description') border-red-500 @enderror"
                     required
                 >{{ old('description') }}</textarea>
@@ -118,14 +135,7 @@
                     <i class="fas fa-image text-primary-600 mr-2"></i>Upload Gambar
                 </label>
                 <div class="relative">
-                    <input 
-                        type="file" 
-                        id="photo" 
-                        name="photo" 
-                        accept="image/*"
-                        class="hidden"
-                        onchange="previewImage(event)"
-                    >
+                    <input type="file" id="photo" name="photo" accept="image/*" class="hidden" onchange="previewImage(event)">
                     <label for="photo" class="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 hover:bg-primary-50 transition-all @error('photo') border-red-500 @enderror">
                         <div class="text-center">
                             <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3 block"></i>
@@ -138,7 +148,6 @@
                     @enderror
                 </div>
 
-                <!-- Preview Gambar -->
                 <div id="imagePreview" class="mt-4 hidden">
                     <p class="text-sm font-medium text-gray-700 mb-2">Preview:</p>
                     <div class="relative inline-block">
@@ -152,10 +161,7 @@
 
             <!-- Submit Button -->
             <div class="flex justify-center pt-8 border-t border-gray-200">
-                <button 
-                    type="submit" 
-                    class="px-12 py-3 bg-gradient-primary text-white font-semibold rounded-lg shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 transition-all flex items-center gap-2"
-                >
+                <button type="submit" class="px-12 py-3 bg-gradient-primary text-white font-semibold rounded-lg shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
                     <i class="fas fa-paper-plane"></i> Kirim Laporan
                 </button>
             </div>
@@ -178,8 +184,80 @@
         </div>
     </main>
 </div>
+@endsection
 
+@section('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+let map, marker;
+const defaultLat = -7.250445;
+const defaultLng = 112.768845;
+
+document.addEventListener('DOMContentLoaded', function() {
+    map = L.map('map').setView([defaultLat, defaultLng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Restore old value if exists (format: lat,lng)
+    const oldLocation = document.getElementById('location').value;
+    if (oldLocation && oldLocation.includes(',')) {
+        const [lat, lng] = oldLocation.split(',').map(Number);
+        setMarker(lat, lng);
+        map.setView([lat, lng], 15);
+        reverseGeocode(lat, lng);
+    }
+
+    map.on('click', function(e) {
+        setMarker(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+});
+
+function setMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    
+    // Store as "lat,lng" format
+    document.getElementById('location').value = `${lat},${lng}`;
+
+    marker.on('dragend', function(e) {
+        const pos = e.target.getLatLng();
+        document.getElementById('location').value = `${pos.lat},${pos.lng}`;
+        reverseGeocode(pos.lat, pos.lng);
+    });
+}
+
+function reverseGeocode(lat, lng) {
+    document.getElementById('addressDisplay').textContent = 'Memuat alamat...';
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('addressDisplay').textContent = data.display_name || `${lat}, ${lng}`;
+        })
+        .catch(() => {
+            document.getElementById('addressDisplay').textContent = `${lat}, ${lng}`;
+        });
+}
+
+function getMyLocation() {
+    if (!navigator.geolocation) {
+        alert('Browser Anda tidak mendukung geolokasi');
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            map.setView([lat, lng], 16);
+            setMarker(lat, lng);
+            reverseGeocode(lat, lng);
+        },
+        () => alert('Gagal mendapatkan lokasi. Pastikan GPS aktif.')
+    );
+}
+
 function previewImage(event) {
     const file = event.target.files[0];
     if (file) {

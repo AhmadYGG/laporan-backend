@@ -18,7 +18,7 @@ class StoreReportRequest extends FormRequest
         return [
             'title'       => 'required|string|max:255',
             'description' => 'required|string',
-            'location'    => 'required|string',
+            'location'    => 'required|string|regex:/^-?\d+\.?\d*,-?\d+\.?\d*$/',
             'photo'       => 'nullable|image|max:2048',
         ];
     }
@@ -33,8 +33,9 @@ class StoreReportRequest extends FormRequest
             'description.required' => 'Deskripsi wajib diisi',
             'description.string'   => 'Deskripsi harus berupa teks',
 
-            'location.required'    => 'Lokasi wajib diisi',
+            'location.required'    => 'Lokasi wajib dipilih dari peta',
             'location.string'      => 'Lokasi harus berupa teks',
+            'location.regex'       => 'Format lokasi tidak valid',
 
             'photo.image'          => 'Foto harus berupa file gambar',
             'photo.max'            => 'Ukuran foto maksimal 2MB',
@@ -43,11 +44,17 @@ class StoreReportRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(
-            response()->json([
-                'errors'  => $validator->errors(),
-                'message' => 'Validation failed',
-            ], 422)
-        );
+        // Return JSON for API requests, redirect for web
+        if ($this->expectsJson() || $this->is('api/*')) {
+            throw new HttpResponseException(
+                response()->json([
+                    'errors'  => $validator->errors(),
+                    'message' => 'Validation failed',
+                ], 422)
+            );
+        }
+
+        // Default Laravel behavior for web (redirect back with errors)
+        parent::failedValidation($validator);
     }
 }

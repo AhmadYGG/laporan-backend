@@ -32,16 +32,37 @@ class ReportController extends Controller
 
             $result = $this->service->indexReportService($params);
 
-            return response()->json([
-                'status' => 'success',
-                'data'       => $result['data'],
-                'pagination' => $result['pagination'],
-            ], 200);
+            // Return view for web requests, JSON for API
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'success',
+                    'data'       => $result['data'],
+                    'pagination' => $result['pagination'],
+                ], 200);
+            }
+
+            // For web, get paginated reports directly
+            $user = $request->user();
+            $reports = \App\Models\Report::with('user')
+                ->when($user->role !== 'admin', function ($q) use ($user) {
+                    return $q->where('user_id', $user->id);
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+
+            // Use different view for admin
+            $view = $user->role === 'admin' ? 'reports.admin-index' : 'reports.index';
+
+            return view($view, ['reports' => $reports]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ]);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -53,15 +74,24 @@ class ReportController extends Controller
                 $request->all()
             );
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $data,
-            ], 201);
+            // Return view for web requests, JSON for API
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => $data,
+                ], 201);
+            }
+
+            return redirect()->route('reports.index')->with('success', 'Laporan berhasil dibuat!');
         } catch (\Throwable $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage())->withInput();
         }
     }
 
@@ -73,15 +103,27 @@ class ReportController extends Controller
                 $id
             );
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $data,
-            ], 200);
+            // Return view for web requests, JSON for API
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => $data,
+                ], 200);
+            }
+
+            $user = $request->user();
+            $view = $user->role === 'admin' ? 'reports.admin-show' : 'reports.show';
+
+            return view($view, ['report' => $data]);
         } catch (\Throwable $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
     }
 
@@ -94,16 +136,23 @@ class ReportController extends Controller
                 $request->validated()
             );
 
-            return response()->json([
-                'status' => 'success',
-                'data'   => $data,
-            ], 200);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status' => 'success',
+                    'data'   => $data,
+                ], 200);
+            }
 
+            return redirect()->route('reports.show', $id)->with('success', 'Laporan berhasil diperbarui!');
         } catch (\Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage())->withInput();
         }
     }
 
@@ -133,20 +182,28 @@ class ReportController extends Controller
         }
     }
 
-    public function deleteReportController($id)
+    public function deleteReportController(Request $request, $id)
     {
         try {
             $deleted = $this->service->deleteReportService($id);
 
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Report deleted successfully',
-            ], 200);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Report deleted successfully',
+                ], 200);
+            }
+
+            return redirect()->route('reports.index')->with('success', 'Laporan berhasil dihapus!');
         } catch (\Throwable $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 500);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return back()->with('error', $e->getMessage());
         }
     }
 }

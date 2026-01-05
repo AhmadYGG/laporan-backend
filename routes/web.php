@@ -22,13 +22,13 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/login', function () {
         return view('auth.login');
     })->name('login');
-    
+
     Route::post('/login', [AuthController::class, 'loginWeb'])->name('login.post');
 
     Route::get('/register', function () {
         return view('auth.register');
     })->name('register');
-    
+
     Route::post('/register', [AuthController::class, 'registerWeb'])->name('register.post');
 });
 
@@ -36,7 +36,7 @@ Route::middleware(['guest'])->group(function () {
 // Protected Routes (Authenticated Users)
 // ========================================
 Route::middleware(['auth'])->group(function () {
-    
+
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -61,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
         })->name('edit');
         Route::put('/{id}', [ReportController::class, 'updateReportController'])->name('update');
         Route::delete('/{id}', [ReportController::class, 'deleteReportController'])->name('destroy');
-        
+
         // Admin only: Update report status
         Route::put('/{id}/status', [ReportController::class, 'updateStatusController'])->name('update-status');
     });

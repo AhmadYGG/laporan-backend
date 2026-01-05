@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class RecapController extends Controller
 {
@@ -65,11 +66,17 @@ class RecapController extends Controller
 
             // Data
             foreach ($reports as $index => $report) {
+                // Get address from coordinates via reverse geocoding
+                $location = $report->location;
+                if ($report->latitude && $report->longitude && empty($report->location)) {
+                    $location = $this->reverseGeocode($report->latitude, $report->longitude);
+                }
+
                 fputcsv($file, [
                     $index + 1,
                     $report->created_at->format('d/m/Y H:i'),
                     $report->title,
-                    $report->location,
+                    $location,
                     $report->user->name,
                     ucfirst(str_replace('_', ' ', $report->status)),
                     $report->description,
@@ -80,5 +87,25 @@ class RecapController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function reverseGeocode($lat, $lng)
+    {
+        try {
+            $response = Http::timeout(5)->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'json',
+                'lat' => $lat,
+                'lon' => $lng,
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['display_name'] ?? "{$lat}, {$lng}";
+            }
+        } catch (\Exception $e) {
+            // Fallback to coordinates
+        }
+
+        return "{$lat}, {$lng}";
     }
 }

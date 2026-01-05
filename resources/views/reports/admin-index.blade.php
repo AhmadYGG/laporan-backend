@@ -1,13 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Rekap Laporan - Sistem Laporan')
-
-@section('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-    #modalMap { height: 400px; border-radius: 0.5rem; z-index: 1; }
-</style>
-@endsection
+@section('title', 'Daftar Laporan - Sistem Laporan')
 
 @section('content')
 <div class="min-h-screen flex bg-gray-50">
@@ -34,13 +27,13 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('reports.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <a href="{{ route('reports.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-primary text-white font-medium transition-all">
                     <i class="fas fa-file-alt w-6 text-center"></i>
                     <span>Laporan</span>
                 </a>
             </li>
             <li>
-                <a href="{{ route('recap.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-primary text-white font-medium transition-all">
+                <a href="{{ route('recap.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
                     <i class="fas fa-chart-bar w-6 text-center"></i>
                     <span>Rekap</span>
                 </a>
@@ -75,53 +68,28 @@
     <!-- Main Content -->
     <main class="flex-1 ml-64 p-8">
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Rekap</h1>
+            <h1 class="text-3xl font-bold text-gray-900">Daftar Laporan</h1>
+            <p class="text-gray-600 mt-2">Kelola semua laporan masyarakat</p>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
+                <i class="fas fa-check-circle"></i>
                 {{ session('success') }}
             </div>
         @endif
 
-        <!-- Filter & Export -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-            <div class="flex flex-col md:flex-row gap-4 items-end">
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tanggal</label>
-                    <div class="flex gap-2">
-                        <input type="date" id="startDate" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                        <span class="text-gray-500 py-2">-</span>
-                        <input type="date" id="endDate" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    </div>
-                </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <button onclick="filterReports()" class="flex-1 md:flex-none px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all">
-                        <i class="fas fa-search"></i> Filter
-                    </button>
-                    <button onclick="exportExcel()" class="flex-1 md:flex-none px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-all">
-                        <i class="fas fa-download"></i> Export Excel
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Reports Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100">
-                <h2 class="text-lg font-semibold text-gray-900">Tabel Data Laporan</h2>
-            </div>
-
             @if($reports->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">No</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tanggal</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Judul</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Lokasi</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Pelapor</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Deskripsi</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Aksi</th>
                             </tr>
@@ -129,8 +97,7 @@
                         <tbody class="divide-y divide-gray-200">
                             @foreach($reports as $index => $report)
                                 <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 text-sm text-gray-900">{{ $index + 1 }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $report->created_at->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ ($reports->currentPage() - 1) * $reports->perPage() + $index + 1 }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $report->title }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
                                         @if($report->latitude && $report->longitude)
@@ -146,7 +113,9 @@
                                             <span class="text-gray-400 text-xs">{{ $report->location }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $report->user->name }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        {{ Str::limit($report->description ?? '-', 60) }}
+                                        <!-- $report->description ?? '-' }}</td> -->
                                     <td class="px-6 py-4 text-sm">
                                         <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold
                                             @if($report->status === 'pending') bg-yellow-100 text-yellow-800
@@ -176,99 +145,36 @@
                 <div class="p-12 text-center">
                     <i class="fas fa-inbox text-5xl text-gray-300 mb-4 block"></i>
                     <div class="text-lg font-semibold text-gray-700 mb-2">Belum Ada Laporan</div>
-                    <p class="text-gray-500">Tidak ada data laporan yang sesuai dengan filter</p>
+                    <p class="text-gray-500">Tidak ada laporan yang tersedia</p>
                 </div>
             @endif
         </div>
     </main>
 </div>
-
-<!-- Map Modal -->
-<div id="mapModal" class="fixed inset-0 bg-black/50 z-[9999] hidden items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
-        <div class="flex items-center justify-between p-4 border-b">
-            <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Lokasi Laporan</h3>
-            <button onclick="closeMapModal()" class="text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
-        <div class="p-4">
-            <div id="modalMap"></div>
-            <p id="modalAddress" class="mt-3 text-sm text-gray-600"></p>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let modalMap, modalMarker;
-
-function filterReports() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    let url = '{{ route("recap.index") }}';
-    const params = new URLSearchParams();
-    if (startDate) params.append('start_date', startDate);
-    if (endDate) params.append('end_date', endDate);
-    if (params.toString()) url += '?' + params.toString();
-    window.location.href = url;
-}
-
-function exportExcel() {
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    let url = '{{ route("recap.export") }}';
-    const params = new URLSearchParams();
-    if (startDate) params.append('start_date', startDate);
-    if (endDate) params.append('end_date', endDate);
-    if (params.toString()) url += '?' + params.toString();
-    window.location.href = url;
-}
-
-function openGoogleMaps(lat, lng) {
-    window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-}
-
-function openMapModal(lat, lng, title) {
-    document.getElementById('mapModal').classList.remove('hidden');
-    document.getElementById('mapModal').classList.add('flex');
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalAddress').textContent = 'Memuat alamat...';
-
-    setTimeout(() => {
-        if (!modalMap) {
-            modalMap = L.map('modalMap').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(modalMap);
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.location-cell').forEach(function(el) {
+        const location = el.dataset.location;
+        if (location && location.includes(',')) {
+            const [lat, lng] = location.split(',');
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
+                .then(res => res.json())
+                .then(data => {
+                    const addr = data.address;
+                    const shortAddr = [addr.road, addr.village || addr.suburb, addr.city || addr.town || addr.county]
+                        .filter(Boolean).join(', ') || data.display_name;
+                    el.innerHTML = `<span title="${data.display_name}">${shortAddr.substring(0, 40)}${shortAddr.length > 40 ? '...' : ''}</span>`;
+                })
+                .catch(() => {
+                    el.textContent = location;
+                });
         } else {
-            modalMap.setView([lat, lng], 15);
+            el.textContent = location || '-';
         }
-
-        if (modalMarker) modalMap.removeLayer(modalMarker);
-        modalMarker = L.marker([lat, lng]).addTo(modalMap);
-        modalMap.invalidateSize();
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('modalAddress').textContent = data.display_name || `${lat}, ${lng}`;
-            })
-            .catch(() => {
-                document.getElementById('modalAddress').textContent = `${lat}, ${lng}`;
-            });
-    }, 100);
-}
-
-function closeMapModal() {
-    document.getElementById('mapModal').classList.add('hidden');
-    document.getElementById('mapModal').classList.remove('flex');
-}
-
-document.getElementById('mapModal').addEventListener('click', function(e) {
-    if (e.target === this) closeMapModal();
+    });
 });
 </script>
 @endsection

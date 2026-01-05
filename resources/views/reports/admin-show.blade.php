@@ -10,40 +10,76 @@
 @endsection
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white border-b border-gray-200">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center text-xl shadow-primary">
-                    <i class="fas fa-clipboard-list text-white"></i>
-                </div>
-                <span class="text-lg font-bold text-gray-900">Laporan Desa</span>
+<div class="min-h-screen flex bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gradient-dark text-white p-6 flex flex-col fixed h-screen left-0 top-0 z-50">
+        <div class="flex items-center gap-3 mb-10 pb-6 border-b border-white/10">
+            <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center text-xl shadow-primary">
+                <i class="fas fa-clipboard-list text-white"></i>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="{{ route('reports.index') }}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </a>
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">
-                        Logout
-                    </button>
-                </form>
-            </div>
+            <span class="font-bold">Laporan Desa</span>
         </div>
-    </header>
+
+        <ul class="flex-1 space-y-2">
+            <li>
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <i class="fas fa-home w-6 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <i class="fas fa-users w-6 text-center"></i>
+                    <span>Data Masyarakat</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('reports.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-primary text-white font-medium transition-all">
+                    <i class="fas fa-file-alt w-6 text-center"></i>
+                    <span>Laporan</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('recap.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <i class="fas fa-chart-bar w-6 text-center"></i>
+                    <span>Rekap</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                    <i class="fas fa-list w-6 text-center"></i>
+                    <span>Log</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="pt-6 border-t border-white/10">
+            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-lg mb-4">
+                <div class="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center font-semibold text-sm">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-semibold truncate">{{ auth()->user()->name }}</div>
+                    <div class="text-xs text-white/60 capitalize">{{ auth()->user()->role }}</div>
+                </div>
+            </div>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full flex items-center justify-center gap-2 py-2 bg-red-500/10 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/20 transition-all text-sm font-medium">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </form>
+        </div>
+    </aside>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-6 py-8">
-        <!-- Back Button -->
+    <main class="flex-1 ml-64 p-8">
         <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium mb-6">
             <i class="fas fa-arrow-left"></i> Kembali ke Daftar
         </a>
 
         <!-- Report Card -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Header -->
             <div class="bg-gradient-primary text-white p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div>
@@ -62,7 +98,6 @@
                 </div>
             </div>
 
-            <!-- Content -->
             <div class="p-8">
                 <!-- Lokasi -->
                 <div class="mb-8 pb-8 border-b border-gray-200">
@@ -122,6 +157,26 @@
                     </div>
                 </div>
 
+                <!-- Update Status (Admin Only) -->
+                <div class="mb-8 pb-8 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-edit text-primary-600"></i> Update Status
+                    </h2>
+                    <form id="updateStatusForm" class="flex flex-col md:flex-row gap-4">
+                        <select id="statusSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="pending" {{ $report->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="in_progress" {{ $report->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
+                            <option value="done" {{ $report->status === 'done' ? 'selected' : '' }}>Done</option>
+                            <option value="rejected" {{ $report->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                        <input type="text" id="notesInput" placeholder="Catatan (opsional)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                        <button type="submit" class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all">
+                            Update Status
+                        </button>
+                    </form>
+                    <div id="statusMessage" class="mt-3 hidden"></div>
+                </div>
+
                 <!-- Timeline Status -->
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -148,8 +203,8 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <p class="font-medium text-gray-900">Status Diubah: {{ ucfirst(str_replace('_', ' ', $log->new_status)) }}</p>
-                                    <p class="text-gray-600 text-sm">{{ $log->created_at->format('d F Y H:i') }} oleh {{ $log->changedBy->name }}</p>
+                                    <p class="font-medium text-gray-900">Status: {{ ucfirst(str_replace('_', ' ', $log->new_status)) }}</p>
+                                    <p class="text-gray-600 text-sm">{{ $log->created_at->format('d F Y H:i') }} oleh {{ $log->changedBy->name ?? '-' }}</p>
                                     @if($log->notes)
                                         <p class="text-gray-700 text-sm mt-2">{{ $log->notes }}</p>
                                     @endif
@@ -160,22 +215,6 @@
                         @endforelse
                     </div>
                 </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="bg-gray-50 px-8 py-6 border-t border-gray-200 flex gap-3">
-                @if($report->status === 'pending')
-                    <a href="{{ route('reports.edit', $report->id) }}" class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
-                        <i class="fas fa-edit"></i> Edit Laporan
-                    </a>
-                    <form action="{{ route('reports.destroy', $report->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus laporan ini?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all flex items-center gap-2">
-                            <i class="fas fa-trash"></i> Hapus Laporan
-                        </button>
-                    </form>
-                @endif
             </div>
         </div>
     </main>
@@ -199,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         L.marker([lat, lng]).addTo(map);
         
         // Get address
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
             .then(res => res.json())
             .then(data => {
                 document.getElementById('locationAddress').textContent = data.display_name || `${lat}, ${lng}`;
@@ -210,6 +249,41 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         document.getElementById('locationAddress').textContent = location || '-';
     }
+
+    // Update status form
+    document.getElementById('updateStatusForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const status = document.getElementById('statusSelect').value;
+        const notes = document.getElementById('notesInput').value;
+        const msgEl = document.getElementById('statusMessage');
+
+        fetch('{{ route("reports.update-status", $report->id) }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': window.csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ status, notes })
+        })
+        .then(res => res.json())
+        .then(data => {
+            msgEl.classList.remove('hidden', 'text-red-600', 'text-green-600');
+            if (data.status === 'success') {
+                msgEl.classList.add('text-green-600');
+                msgEl.textContent = 'Status berhasil diperbarui!';
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                msgEl.classList.add('text-red-600');
+                msgEl.textContent = data.message || 'Gagal memperbarui status';
+            }
+        })
+        .catch(() => {
+            msgEl.classList.remove('hidden');
+            msgEl.classList.add('text-red-600');
+            msgEl.textContent = 'Terjadi kesalahan';
+        });
+    });
 });
 </script>
 @endsection

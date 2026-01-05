@@ -133,7 +133,11 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 text-sm text-gray-900">{{ $index + 1 }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $report->title }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $report->location }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        <span class="location-cell" data-location="{{ $report->location }}">
+                                            <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                                        </span>
+                                    </td>
                                     <td class="px-6 py-4 text-sm">
                                         @if($report->photo_path)
                                             <a href="{{ asset('storage/' . $report->photo_path) }}" target="_blank" class="text-primary-600 hover:text-primary-700 font-medium">
@@ -174,4 +178,30 @@
         </div>
     </main>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.location-cell').forEach(function(el) {
+        const location = el.dataset.location;
+        if (location && location.includes(',')) {
+            const [lat, lng] = location.split(',');
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
+                .then(res => res.json())
+                .then(data => {
+                    const addr = data.address;
+                    const shortAddr = [addr.road, addr.village || addr.suburb, addr.city || addr.town || addr.county]
+                        .filter(Boolean).join(', ') || data.display_name;
+                    el.innerHTML = `<span title="${data.display_name}">${shortAddr.substring(0, 35)}${shortAddr.length > 35 ? '...' : ''}</span>`;
+                })
+                .catch(() => {
+                    el.textContent = location;
+                });
+        } else {
+            el.textContent = location || '-';
+        }
+    });
+});
+</script>
 @endsection
