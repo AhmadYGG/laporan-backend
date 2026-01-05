@@ -5,7 +5,6 @@
 @section('main-content')
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900">Data Masyarakat</h1>
-    <p class="text-gray-600 mt-2">Kelola data masyarakat yang terdaftar</p>
 </div>
 
 @if(session('success'))

@@ -40,7 +40,6 @@
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Daftar Laporan Saya</h1>
-                <p class="text-gray-600 mt-2">Kelola dan pantau semua laporan yang telah Anda buat</p>
             </div>
             <a href="{{ route('reports.create') }}" class="px-6 py-3 bg-gradient-primary text-white font-semibold rounded-lg shadow-primary hover:shadow-primary-lg hover:-translate-y-0.5 transition-all flex items-center gap-2">
                 <i class="fas fa-plus"></i> Buat Laporan Baru

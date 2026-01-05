@@ -5,7 +5,6 @@
 @section('main-content')
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900">Daftar Laporan</h1>
-    <p class="text-gray-600 mt-2">Kelola semua laporan masyarakat</p>
 </div>
 
 @if(session('success'))
@@ -64,8 +63,8 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm">
-                                <a href="{{ route('reports.show', $report->id) }}" class="text-primary-600 hover:text-primary-700 font-medium">
-                                    Detail
+                                <a href="{{ route('reports.show', $report->id) }}" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all" title="Detail">
+                                    <i class="fas fa-eye"></i>
                                 </a>
                             </td>
                         </tr>

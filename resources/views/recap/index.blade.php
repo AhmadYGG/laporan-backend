@@ -89,7 +89,7 @@
                             </td>
                             <td class="px-6 py-4 text-sm">
                                 <a href="{{ route('reports.show', $report->id) }}" class="text-primary-600 hover:text-primary-700 font-medium">
-                                    Detail
+                                    <i class="fas fa-eye"></i>
                                 </a>
                             </td>
                         </tr>

@@ -5,7 +5,7 @@
 @section('content')
 <!-- Header -->
 <header class="bg-gradient-to-r from-slate-900 to-slate-800 py-4 px-6 shadow-lg">
-    <span class="text-white font-bold text-sm tracking-widest uppercase">Logo Desa</span>
+    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-10 w-auto object-contain">
 </header>
 
 <!-- Main Content -->

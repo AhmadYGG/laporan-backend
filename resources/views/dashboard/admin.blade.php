@@ -6,7 +6,6 @@
 <!-- Page Header -->
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-2">Selamat datang, Admin!</h1>
-    <p class="text-gray-600">Kelola laporan dan data masyarakat dengan mudah</p>
 </div>
 
 @if(session('success'))
